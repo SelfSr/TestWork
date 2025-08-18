@@ -5,6 +5,25 @@ public class Player : Character
 {
     private List<Enemy> enemies;
 
+    private float finalDamage;
+    private float finalHealth;
+    private float finalAttackSpeed;
+
+    public override void Initialize()
+    {
+        isDead = false;
+
+        finalDamage = config.damage + SaveSystem.PlayerData.damageModifier;
+        finalHealth = config.health + SaveSystem.PlayerData.healthModifier;
+        finalAttackSpeed = config.attackSpeed + SaveSystem.PlayerData.attackSpeedModifier;
+
+        currentHealth = finalHealth;
+        healthView.Initialize(finalHealth);
+        healthView.gameObject.SetActive(true);
+
+        UIEnevts.OnUpdateStats?.Invoke(finalDamage, finalHealth, finalAttackSpeed);
+    }
+
     public void SetTarget(List<Enemy> enemiesList)
     {
         enemies = enemiesList;
@@ -24,12 +43,12 @@ public class Player : Character
         if (attackCooldown > 0f)
             attackCooldown -= Time.deltaTime;
 
-        if (Vector3.Distance(transform.position, attackTarget.position) <= config.attackRange)
+        if (Vector3.Distance(transform.position, attackTarget.position) <= config.attackRange && !isDead)
         {
             if (attackCooldown <= 0f)
             {
                 Attack();
-                attackCooldown = 1f / config.attackSpeed;
+                attackCooldown = 1f / finalAttackSpeed;
             }
         }
     }
@@ -49,6 +68,6 @@ public class Player : Character
         AudioManager.Instance.PlaySound(AudioManager.Instance.audioClips.range, volume: 0.5f);
         animator.SetTrigger("Attack_Pl");
         var projObj = Instantiate(projectile, new Vector3(transform.position.x, transform.position.y + 5f, transform.position.z), Quaternion.identity, transform.root);
-        projObj.Initialize(this, attackTarget, config.damage);
+        projObj.Initialize(this, attackTarget, finalDamage);
     }
 }

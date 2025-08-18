@@ -5,9 +5,9 @@ public class Projectile : MonoBehaviour
     [SerializeField] private float speed;
     private Transform target;
     private Character owner;
-    private int damage;
+    private float damage;
 
-    public void Initialize(Character owner, Transform target, int damage)
+    public void Initialize(Character owner, Transform target, float damage)
     {
         this.owner = owner;
         this.target = target;

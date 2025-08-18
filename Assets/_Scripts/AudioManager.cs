@@ -6,7 +6,7 @@ public class AudioManager : MonoBehaviour
     [System.Serializable]
     public class AudioClips
     {
-        public AudioClip melee, range;
+        public AudioClip melee, range, money;
     }
 
     [Header("Sound")]
@@ -28,21 +28,6 @@ public class AudioManager : MonoBehaviour
         }
         else Destroy(gameObject);
     }
-
-    //private void OnEnable()
-    //{
-    //    SaveSystem.SettingsData.OnDataChanged += OnToggleSourceChanged;
-    //}
-
-    //private void OnDisable()
-    //{
-    //    SaveSystem.SettingsData.OnDataChanged -= OnToggleSourceChanged;
-    //}
-
-    //private void Start()
-    //{
-    //    OnToggleSourceChanged();
-    //}
 
     public void PlaySound(AudioClip clip, float delay = 0, float pitch = 0, bool randomPitch = false, float spatialBlend = 0, float volume = 1)
     {
@@ -77,6 +62,4 @@ public class AudioManager : MonoBehaviour
 
         audioSource.Stop();
     }
-
-    //private void OnToggleSourceChanged() => audioSource.mute = !SaveSystem.SettingsData.SoundToggle;
 }

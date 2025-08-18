@@ -10,16 +10,15 @@ public abstract class Character : MonoBehaviour, IDamagable, IAttacker
     [SerializeField] protected Projectile projectile;
     [SerializeField] protected Animator animator;
 
-    protected int currentHealth;
+    protected float currentHealth;
     protected float attackCooldown;
     protected Transform attackTarget;
 
-    public bool isDead { get; private set; }
+    public bool isDead { get; protected set; }
 
     public virtual void Initialize()
     {
         isDead = false;
-        animator = GetComponentInChildren<Animator>();
         currentHealth = config.health;
 
         healthView.Initialize(config.health);
@@ -28,7 +27,7 @@ public abstract class Character : MonoBehaviour, IDamagable, IAttacker
 
     public abstract void Attack();
 
-    public virtual void TakeDamage(int value)
+    public virtual void TakeDamage(float value)
     {
         if (isDead)
             return;

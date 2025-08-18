@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class WaveManager : MonoBehaviour
 {
@@ -9,25 +10,39 @@ public class WaveManager : MonoBehaviour
     private Player player;
     private GameConfig gameConfig;
     private GroundMover groundMover;
+    private HeroStatsUpgrader stats;
     private int currentWaveIndex;
 
     private List<Transform> spawnPos = new();
     private List<Enemy> enemies = new();
 
     private bool isWaveStarted;
+    public bool IsGameStarted { get; set; }
 
-    public void Initialize(GameConfig config, Player pl, GroundMover mover)
+    public void Initialize(GameConfig config, Player pl, GroundMover mover, HeroStatsUpgrader heroStats)
     {
         gameConfig = config;
         player = pl;
         groundMover = mover;
+        stats = heroStats;
 
         player.OnEnemyDied += OnCharacterDied;
+        stats.OnShowStats += StartNewWave;
 
         for (int i = 0; i < enemySpawnParent.childCount; i++)
             spawnPos.Add(enemySpawnParent.GetChild(i));
 
-        currentWaveIndex = 0;  // from savesystem
+        currentWaveIndex = SaveSystem.PlayerData.waveIndex;
+    }
+
+    private void OnDestroy()
+    {
+        if (enemies != null && enemies.Count != 0)
+            foreach (var enemy in enemies)
+                enemy.OnEnemyDied -= OnCharacterDied;
+
+        player.OnEnemyDied -= OnCharacterDied;
+        stats.OnShowStats -= StartNewWave;
     }
 
     private void Update()
@@ -36,15 +51,23 @@ public class WaveManager : MonoBehaviour
         {
             isWaveStarted = false;
             currentWaveIndex = (currentWaveIndex + 1) % gameConfig.waves.Count;
+            SaveSystem.PlayerData.waveIndex = currentWaveIndex;
+            SaveSystem.PlayerData.Save();
 
-            StartCoroutine(StartWave());
+            stats.ShowStats();
         }
     }
 
-    public IEnumerator StartWave()
+    public void StartNewWave()
+    {
+        if (IsGameStarted)
+            StartCoroutine(StartWave());
+    }
+
+    private IEnumerator StartWave()
     {
         yield return new WaitForSeconds(1f);
-
+        player.Initialize();
         player.Move();
         groundMover.Move();
 
@@ -81,7 +104,10 @@ public class WaveManager : MonoBehaviour
         if (character is Enemy enemy)
         {
             if (enemies.Contains(enemy))
+            {
                 enemies.Remove(enemy);
+                UpdateMoney();
+            }
 
             yield return new WaitForSeconds(1f);
 
@@ -91,16 +117,24 @@ public class WaveManager : MonoBehaviour
         else if (character is Player)
         {
             yield return new WaitForSeconds(1f);
-            Debug.Log("Dead Player");
+
+            foreach (var ene in enemies)
+            {
+                ene.SetTarget(null);
+            }
+
+            UIEnevts.OnShowLoseTxt?.Invoke();
+
+            yield return new WaitForSeconds(2f);
+
+            SceneManager.LoadScene(0);
         }
     }
 
-    private void OnDestroy()
+    private void UpdateMoney()
     {
-        if (enemies != null && enemies.Count != 0)
-            foreach (var enemy in enemies)
-                enemy.OnEnemyDied -= OnCharacterDied;
-
-        player.OnEnemyDied -= OnCharacterDied;
+        SaveSystem.PlayerData.money += 1;
+        SaveSystem.PlayerData.Save();
+        UIEnevts.OnUpdateMoney(SaveSystem.PlayerData.money);
     }
 }

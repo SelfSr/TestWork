@@ -1,40 +1,37 @@
 using DG.Tweening;
+using DG.Tweening.Core.Easing;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class BOOT : MonoBehaviour
 {
-    [SerializeField] private Button playBtn;
-    [SerializeField] private GameObject logo;
-
+    [SerializeField] private UIManager uIManager;
     [SerializeField] private GameConfig gameConfig;
     [SerializeField] private GroundMover groundMover;
     [SerializeField] private Player player;
     [SerializeField] private Transform startPos;
+    [SerializeField] private HeroStatsUpgrader heroStats;
 
     private WaveManager waveManager;
 
     private void Awake()
     {
+        SaveSystem.Initialize();
+
+        heroStats.Initialize();
         waveManager = GetComponent<WaveManager>();
-        waveManager.Initialize(gameConfig, player, groundMover);
+        waveManager.Initialize(gameConfig, player, groundMover, heroStats);
+
+        uIManager.Initialize(heroStats);
+        uIManager.OnClickPlayBtn += StartGame;
     }
 
-    private void OnEnable()
+    private void OnDestroy()
     {
-        playBtn.onClick.AddListener(OnClickPlayBtn);
+        uIManager.OnClickPlayBtn -= StartGame;
     }
 
-    private void OnDisable()
+    private void StartGame()
     {
-        playBtn.onClick.RemoveListener(OnClickPlayBtn);
-    }
-
-    private void OnClickPlayBtn()
-    {
-        playBtn.gameObject.SetActive(false);
-        logo.SetActive(false);
-
         FlipPlayer();
         player.Move();
 
@@ -44,9 +41,9 @@ public class BOOT : MonoBehaviour
             .OnComplete(() =>
             {
                 FlipPlayer();
-                player.Initialize();
                 player.StopMove();
-                StartCoroutine(waveManager.StartWave());
+                waveManager.IsGameStarted = true;
+                waveManager.StartNewWave();
             });
     }
 

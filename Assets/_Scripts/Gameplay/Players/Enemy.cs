@@ -58,6 +58,7 @@ public class Enemy : Character
     {
         AudioManager.Instance.PlaySound(AudioManager.Instance.audioClips.melee, volume: 0.5f);
         if (attackTarget.TryGetComponent(out IDamagable target))
-            target.TakeDamage(config.damage);
+            if (target != null)
+                target.TakeDamage(config.damage);
     }
 }

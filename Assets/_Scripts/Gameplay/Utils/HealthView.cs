@@ -11,10 +11,10 @@ public class HealthView : MonoBehaviour
 
     private Tween filling;
     private Sequence damagePopup;
-    private int maxValue;
-    private int currentValue;
+    private float maxValue;
+    private float currentValue;
 
-    public void Initialize(int max)
+    public void Initialize(float max)
     {
         maxValue = max;
         currentValue = max;
@@ -23,15 +23,15 @@ public class HealthView : MonoBehaviour
         counterTxt.text = maxValue.ToString();
     }
 
-    public void UpdateValue(int value)
+    public void UpdateValue(float value)
     {
         if (value < 0)
             value = 0;
 
-        int damage = currentValue - value;
+        float damage = currentValue - value;
         currentValue = value;
 
-        float targetFill = Mathf.Clamp01(value / (float)maxValue);
+        float targetFill = Mathf.Clamp01(value / maxValue);
 
         if (filling != null && filling.active)
             filling.Complete();
@@ -43,7 +43,7 @@ public class HealthView : MonoBehaviour
             ShowDamagePopup(damage);
     }
 
-    private void ShowDamagePopup(int damage)
+    private void ShowDamagePopup(float damage)
     {
         damagePopupTxt.text = damage.ToString();
 
